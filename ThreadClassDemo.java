@@ -1,35 +1,53 @@
-// ThreadClassDemo.java
+//Bryn Bijur, s1324044
 public class ThreadClassDemo {
     public static void main(String[] args) {
-        int guessNum = (int) (Math.random() * 100 + 1);
-        System.out.println("Chosen number: " + guessNum);
 
-        System.out.println("Starting first GuessNumber thread...");
-        Thread thread1 = new GuessNumber(guessNum);
+        // Start GuessNumber threads:
+        Thread thread1 = new GuessNumber();
+        thread1.setDaemon(true); // Must daemonize threads that have while(true).
         thread1.start();
 
-        System.out.println("Starting second GuessNumber thread...");
-        Thread thread2 = new GuessNumber(guessNum);
+        Thread thread2 = new GuessNumber();
+        thread2.setDaemon(true);
         thread2.start();
 
-        System.out.println("Starting third GuessNumber thread...");
-        Thread thread3 = new GuessNumber(guessNum);
+        Thread thread3 = new GuessNumber();
+        thread3.setDaemon(true);
         thread3.start();
 
-        System.out.println("Starting fourth GuessNumber thread...");
-        Thread thread4 = new GuessNumber(guessNum);
+        Thread thread4 = new GuessNumber();
+        thread4.setDaemon(true);
         thread4.start();
 
-        try {
-            // Wait for all threads to complete
-            thread1.join();
-            thread2.join();
-            thread3.join();
-            thread4.join();
-        } catch (InterruptedException e) {
-            System.out.println("Thread interrupted.");
-        }
+        while (true) {
+            Shared.secret = (int) (Math.random() * 100 + 1);
+            System.out.println("\nThe secret number is " + Shared.secret + ".\n");
 
-        System.out.println("All GuessNumber threads complete after " + Shared.totalThreadGuesses + " total guesses.");
-    }
-}
+            // Spin here until all threads guess correctly.
+            while (Shared.numThreadsDone < 4) {
+                try {
+                    Thread.sleep(50); // NECESSARY
+                } catch (InterruptedException e) {
+                    System.out.println("Thread interrupted.");
+                }
+            }
+
+            System.out.println("\nAll four threads finished guessing in " +
+                    Shared.totalThreadGuesses + " guesses.");
+            System.out.println("\nStarting the next round.");
+
+            try {
+                Thread.sleep(2000);
+                // Reset shared vars for next round.
+                Shared.semaphore.acquire();
+                Shared.numThreadsDone = 0;
+                Shared.totalThreadGuesses = 0;
+                Shared.semaphore.release();
+            } catch (InterruptedException e) {
+                System.out.println("Thread interrupted.");
+            }
+        } // end while
+
+    } // end main()
+
+} // end class
